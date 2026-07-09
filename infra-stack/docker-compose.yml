@@ -1,0 +1,18 @@
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    privileged: true
+    environment:
+      - TZ=America/Chicago
+    volumes:
+      - ./homeassistant/config:/config
+    ports:
+      - "8123:8123"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARED_TOKEN}
