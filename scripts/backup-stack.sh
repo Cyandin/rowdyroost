@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Production stack backup utility for Blackblade.
-#
-# Usage:
-#   ./scripts/backup-stack.sh dns-stack
-#   ./scripts/backup-stack.sh infra-stack
-#   ./scripts/backup-stack.sh proxy-stack
-
 STACK="${1:-}"
 
 DOCKER_ROOT="${HOME}/docker"
@@ -40,9 +33,9 @@ echo "Source:      ${STACK_DIR}"
 echo "Destination: ${BACKUP_DIR}"
 echo "========================================"
 
-#
-# Record deployment state before touching data.
-#
+echo
+echo "Checking sudo access..."
+sudo -v
 
 cd "${STACK_DIR}"
 
@@ -53,10 +46,6 @@ docker compose ps > "${BACKUP_DIR}/compose-ps.txt"
 docker ps \
   --format '{{.Names}}|{{.Image}}|{{.ID}}|{{.Status}}' \
   > "${BACKUP_DIR}/docker-containers.txt"
-
-#
-# Record exact image IDs/digests for rollback.
-#
 
 {
   while IFS= read -r container; do
@@ -77,55 +66,58 @@ docker ps \
   done < <(docker compose ps --format '{{.Name}}')
 } > "${BACKUP_DIR}/image-state.txt"
 
-#
-# Back up stack files and persistent data.
-#
-
 case "${STACK}" in
 
   dns-stack)
-    cp -a "${STACK_DIR}/docker-compose.yaml" \
-          "${BACKUP_DIR}/"
+    cp -a \
+      "${STACK_DIR}/docker-compose.yaml" \
+      "${BACKUP_DIR}/docker-compose.yaml"
 
-    cp -a "${STACK_DIR}/adguard" \
-          "${BACKUP_DIR}/"
+    sudo cp -a \
+      "${STACK_DIR}/adguard" \
+      "${BACKUP_DIR}/adguard"
     ;;
 
   infra-stack)
-    cp -a "${STACK_DIR}/docker-compose.yaml" \
-          "${BACKUP_DIR}/"
+    cp -a \
+      "${STACK_DIR}/docker-compose.yaml" \
+      "${BACKUP_DIR}/docker-compose.yaml"
 
     if [[ -f "${STACK_DIR}/.env" ]]; then
-      cp -a "${STACK_DIR}/.env" \
-            "${BACKUP_DIR}/.env"
+      cp -a \
+        "${STACK_DIR}/.env" \
+        "${BACKUP_DIR}/.env"
     fi
 
-    cp -a "${STACK_DIR}/homeassistant" \
-          "${BACKUP_DIR}/"
+    sudo cp -a \
+      "${STACK_DIR}/homeassistant" \
+      "${BACKUP_DIR}/homeassistant"
 
-    cp -a "${STACK_DIR}/homarr" \
-          "${BACKUP_DIR}/"
+    sudo cp -a \
+      "${STACK_DIR}/homarr" \
+      "${BACKUP_DIR}/homarr"
 
-    cp -a "${STACK_DIR}/uptime-kuma" \
-          "${BACKUP_DIR}/"
+    sudo cp -a \
+      "${STACK_DIR}/uptime-kuma" \
+      "${BACKUP_DIR}/uptime-kuma"
     ;;
 
   proxy-stack)
-    cp -a "${STACK_DIR}/docker-compose.yaml" \
-          "${BACKUP_DIR}/"
+    cp -a \
+      "${STACK_DIR}/docker-compose.yaml" \
+      "${BACKUP_DIR}/docker-compose.yaml"
 
-    cp -a "${STACK_DIR}/data" \
-          "${BACKUP_DIR}/"
+    sudo cp -a \
+      "${STACK_DIR}/data" \
+      "${BACKUP_DIR}/data"
 
-    cp -a "${STACK_DIR}/letsencrypt" \
-          "${BACKUP_DIR}/"
+    sudo cp -a \
+      "${STACK_DIR}/letsencrypt" \
+      "${BACKUP_DIR}/letsencrypt"
     ;;
 esac
 
-#
-# Restrict permissions because backups may contain credentials.
-#
-
+sudo chown -R "${USER}:${USER}" "${BACKUP_DIR}"
 chmod -R go-rwx "${BACKUP_DIR}"
 
 echo

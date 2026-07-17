@@ -15,23 +15,33 @@ esac
 PASS=0
 FAIL=0
 
+RETRIES=6
+RETRY_DELAY=5
+
 check_http() {
   local name="$1"
   local url="$2"
 
   echo -n "Checking ${name} ... "
 
-  if curl -fsS \
-    --connect-timeout 5 \
-    --max-time 15 \
-    "${url}" >/dev/null; then
+  for attempt in $(seq 1 "${RETRIES}"); do
+    if curl -fsS \
+      --connect-timeout 5 \
+      --max-time 15 \
+      "${url}" >/dev/null; then
 
-    echo "PASS"
-    PASS=$((PASS + 1))
-  else
-    echo "FAIL"
-    FAIL=$((FAIL + 1))
-  fi
+      echo "PASS"
+      PASS=$((PASS + 1))
+      return 0
+    fi
+
+    if [[ "${attempt}" -lt "${RETRIES}" ]]; then
+      sleep "${RETRY_DELAY}"
+    fi
+  done
+
+  echo "FAIL"
+  FAIL=$((FAIL + 1))
 }
 
 check_http_resolve() {
@@ -41,18 +51,25 @@ check_http_resolve() {
 
   echo -n "Checking ${name} ... "
 
-  if curl -fsS \
-    --connect-timeout 5 \
-    --max-time 15 \
-    --resolve "${resolve}" \
-    "${url}" >/dev/null; then
+  for attempt in $(seq 1 "${RETRIES}"); do
+    if curl -fsS \
+      --connect-timeout 5 \
+      --max-time 15 \
+      --resolve "${resolve}" \
+      "${url}" >/dev/null; then
 
-    echo "PASS"
-    PASS=$((PASS + 1))
-  else
-    echo "FAIL"
-    FAIL=$((FAIL + 1))
-  fi
+      echo "PASS"
+      PASS=$((PASS + 1))
+      return 0
+    fi
+
+    if [[ "${attempt}" -lt "${RETRIES}" ]]; then
+      sleep "${RETRY_DELAY}"
+    fi
+  done
+
+  echo "FAIL"
+  FAIL=$((FAIL + 1))
 }
 
 check_http_reachable_resolve() {
@@ -62,26 +79,33 @@ check_http_reachable_resolve() {
 
   echo -n "Checking ${name} ... "
 
-  local status
+  for attempt in $(seq 1 "${RETRIES}"); do
+    local status
 
-  status="$(
-    curl -sS \
-      --connect-timeout 5 \
-      --max-time 15 \
-      --resolve "${resolve}" \
-      -o /dev/null \
-      -w '%{http_code}' \
-      "${url}" \
-      || true
-  )"
+    status="$(
+      curl -sS \
+        --connect-timeout 5 \
+        --max-time 15 \
+        --resolve "${resolve}" \
+        -o /dev/null \
+        -w '%{http_code}' \
+        "${url}" \
+        || true
+    )"
 
-  if [[ "${status}" =~ ^[1-4][0-9][0-9]$ ]]; then
-    echo "PASS (HTTP ${status})"
-    PASS=$((PASS + 1))
-  else
-    echo "FAIL (HTTP ${status:-none})"
-    FAIL=$((FAIL + 1))
-  fi
+    if [[ "${status}" =~ ^[1-4][0-9][0-9]$ ]]; then
+      echo "PASS (HTTP ${status})"
+      PASS=$((PASS + 1))
+      return 0
+    fi
+
+    if [[ "${attempt}" -lt "${RETRIES}" ]]; then
+      sleep "${RETRY_DELAY}"
+    fi
+  done
+
+  echo "FAIL (HTTP ${status:-none})"
+  FAIL=$((FAIL + 1))
 }
 
 check_tcp() {
@@ -91,15 +115,22 @@ check_tcp() {
 
   echo -n "Checking ${name} ... "
 
-  if timeout 5 bash -c \
-    "</dev/tcp/${host}/${port}" 2>/dev/null; then
+  for attempt in $(seq 1 "${RETRIES}"); do
+    if timeout 5 bash -c \
+      "</dev/tcp/${host}/${port}" 2>/dev/null; then
 
-    echo "PASS"
-    PASS=$((PASS + 1))
-  else
-    echo "FAIL"
-    FAIL=$((FAIL + 1))
-  fi
+      echo "PASS"
+      PASS=$((PASS + 1))
+      return 0
+    fi
+
+    if [[ "${attempt}" -lt "${RETRIES}" ]]; then
+      sleep "${RETRY_DELAY}"
+    fi
+  done
+
+  echo "FAIL"
+  FAIL=$((FAIL + 1))
 }
 
 check_container() {
@@ -107,16 +138,23 @@ check_container() {
 
   echo -n "Checking container ${name} ... "
 
-  if docker inspect "${name}" \
-    --format '{{.State.Running}}' \
-    2>/dev/null | grep -q '^true$'; then
+  for attempt in $(seq 1 "${RETRIES}"); do
+    if docker inspect "${name}" \
+      --format '{{.State.Running}}' \
+      2>/dev/null | grep -q '^true$'; then
 
-    echo "PASS"
-    PASS=$((PASS + 1))
-  else
-    echo "FAIL"
-    FAIL=$((FAIL + 1))
-  fi
+      echo "PASS"
+      PASS=$((PASS + 1))
+      return 0
+    fi
+
+    if [[ "${attempt}" -lt "${RETRIES}" ]]; then
+      sleep "${RETRY_DELAY}"
+    fi
+  done
+
+  echo "FAIL"
+  FAIL=$((FAIL + 1))
 }
 
 echo "========================================"
@@ -135,7 +173,20 @@ case "${STACK}" in
 
     echo -n "Checking DNS resolution through AdGuard ... "
 
-    if dig @192.168.1.174 example.com +short | grep -q .; then
+    dns_ok=false
+
+    for attempt in $(seq 1 "${RETRIES}"); do
+      if dig @192.168.1.174 example.com +short | grep -q .; then
+        dns_ok=true
+        break
+      fi
+
+      if [[ "${attempt}" -lt "${RETRIES}" ]]; then
+        sleep "${RETRY_DELAY}"
+      fi
+    done
+
+    if [[ "${dns_ok}" == "true" ]]; then
       echo "PASS"
       PASS=$((PASS + 1))
     else
