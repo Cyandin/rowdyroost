@@ -1,6 +1,6 @@
 services:
   homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
+    image: ghcr.io/home-assistant/home-assistant:2026.7.2@sha256:1476924357b46e80735c13e94232ba5c853cac052e9df4bb28d50fa56348097b
     container_name: homeassistant
     restart: unless-stopped
     privileged: true
@@ -12,13 +12,13 @@ services:
       - "8123:8123"
 
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.7.2@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
     container_name: cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARED_TOKEN}
 
   homarr:
-    image: ghcr.io/homarr-labs/homarr:latest
+    image: ghcr.io/homarr-labs/homarr:latest@sha256:ae875bfbcfd6d5cb5d9f40ba656920373c058d73ca3f360d2ffea835c7b76fa9
     container_name: homarr
     restart: unless-stopped
     environment:
@@ -31,7 +31,7 @@ services:
       - "7575:7575"
 
   uptime-kuma:
-    image: louislam/uptime-kuma:latest
+    image: louislam/uptime-kuma:1.23.17@sha256:3d632903e6af34139a37f18055c4f1bfd9b7205ae1138f1e5e8940ddc1d176f9
     container_name: uptime-kuma
     restart: unless-stopped
     ports:
