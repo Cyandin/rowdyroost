@@ -7,10 +7,10 @@ DOCKER_ROOT="${HOME}/docker"
 BACKUP_ROOT="${HOME}/docker-backups"
 
 case "${STACK}" in
-  dns-stack|infra-stack|proxy-stack)
+  dns-stack|infra-stack|proxy-stack|plex-stack)
     ;;
   *)
-    echo "ERROR: Usage: $0 {dns-stack|infra-stack|proxy-stack}"
+    echo "ERROR: Usage: $0 {dns-stack|infra-stack|proxy-stack|plex-stack}"
     exit 1
     ;;
 esac
@@ -114,6 +114,35 @@ case "${STACK}" in
     sudo cp -a \
       "${STACK_DIR}/letsencrypt" \
       "${BACKUP_DIR}/letsencrypt"
+    ;;
+
+  plex-stack)
+    cp -a \
+      "${STACK_DIR}/docker-compose.yml" \
+      "${BACKUP_DIR}/docker-compose.yml"
+
+    if [[ -f "${STACK_DIR}/.env" ]]; then
+      cp -a \
+        "${STACK_DIR}/.env" \
+        "${BACKUP_DIR}/.env"
+    fi
+
+    APPDATA_ROOT="${HOME}/docker/appdata"
+
+    for dir in \
+      gluetun \
+      qbittorrent \
+      plex \
+      radarr \
+      sonarr \
+      prowlarr
+    do
+      if [[ -d "${APPDATA_ROOT}/${dir}" ]]; then
+        sudo cp -a \
+          "${APPDATA_ROOT}/${dir}" \
+          "${BACKUP_DIR}/${dir}"
+      fi
+    done
     ;;
 esac
 
