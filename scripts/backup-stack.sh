@@ -33,9 +33,11 @@ echo "Source:      ${STACK_DIR}"
 echo "Destination: ${BACKUP_DIR}"
 echo "========================================"
 
-echo
-echo "Checking sudo access..."
-sudo -v
+if [[ "${STACK}" != "plex-stack" ]]; then
+  echo
+  echo "Checking sudo access..."
+  sudo -v
+fi
 
 cd "${STACK_DIR}"
 
@@ -138,7 +140,7 @@ case "${STACK}" in
       prowlarr
     do
       if [[ -d "${APPDATA_ROOT}/${dir}" ]]; then
-        sudo cp -a \
+        cp -a \
           "${APPDATA_ROOT}/${dir}" \
           "${BACKUP_DIR}/${dir}"
       fi
@@ -146,7 +148,10 @@ case "${STACK}" in
     ;;
 esac
 
-sudo chown -R "${USER}:${USER}" "${BACKUP_DIR}"
+if [[ "${STACK}" != "plex-stack" ]]; then
+  sudo chown -R "${USER}:${USER}" "${BACKUP_DIR}"
+fi
+
 chmod -R go-rwx "${BACKUP_DIR}"
 
 echo
