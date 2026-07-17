@@ -1,0 +1,105 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests"
+  ],
+  "dependencyDashboard": true,
+  "automerge": false,
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "packageRules": [
+    {
+      "description": "Production Docker images - seven day stabilization period",
+      "matchDatasources": [
+        "docker"
+      ],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Never automatically merge Docker updates",
+      "matchDatasources": [
+        "docker"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Disable Docker major version upgrades",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Group Blackblade infrastructure patch updates",
+      "matchFileNames": [
+        "dns-stack/**",
+        "infra-stack/**",
+        "proxy-stack/**"
+      ],
+      "matchUpdateTypes": [
+        "patch",
+        "digest"
+      ],
+      "groupName": "blackblade production patch updates"
+    },
+    {
+      "description": "Keep Home Assistant updates separate",
+      "matchPackageNames": [
+        "ghcr.io/home-assistant/home-assistant"
+      ],
+      "groupName": "home assistant"
+    },
+    {
+      "description": "Keep AdGuard updates separate",
+      "matchPackageNames": [
+        "adguard/adguardhome"
+      ],
+      "groupName": "adguard home"
+    },
+    {
+      "description": "Keep Nginx Proxy Manager updates separate",
+      "matchPackageNames": [
+        "jc21/nginx-proxy-manager"
+      ],
+      "groupName": "nginx proxy manager"
+    },
+    {
+      "description": "Do not automatically version-upgrade Homarr while pinned from latest",
+      "matchPackageNames": [
+        "ghcr.io/homarr-labs/homarr"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Do not automatically migrate Uptime Kuma across major versions",
+      "matchPackageNames": [
+        "louislam/uptime-kuma"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Media stack requires manual review",
+      "matchFileNames": [
+        "plex-stack/**"
+      ],
+      "automerge": false,
+      "minimumReleaseAge": "7 days"
+    }
+  ]
+}
