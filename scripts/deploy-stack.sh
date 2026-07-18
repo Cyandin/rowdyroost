@@ -12,16 +12,22 @@ HEALTHCHECK_SCRIPT="${REPO_ROOT}/scripts/healthcheck-stack.sh"
 ROLLBACK_SCRIPT="${REPO_ROOT}/scripts/rollback-stack.sh"
 
 case "${STACK}" in
-  dns-stack|infra-stack|proxy-stack)
+  dns-stack|infra-stack|proxy-stack|plex-stack)
     ;;
   *)
-    echo "ERROR: Usage: $0 {dns-stack|infra-stack|proxy-stack}"
+    echo "ERROR: Usage: $0 {dns-stack|infra-stack|proxy-stack|plex-stack}"
     exit 1
     ;;
 esac
 
 REPO_STACK="${REPO_ROOT}/${STACK}"
 LIVE_STACK="${DOCKER_ROOT}/${STACK}"
+
+if [[ "${STACK}" == "plex-stack" ]]; then
+  COMPOSE_FILE="docker-compose.yml"
+else
+  COMPOSE_FILE="docker-compose.yaml"
+fi
 
 echo "========================================"
 echo "PRODUCTION DEPLOYMENT"
@@ -52,6 +58,11 @@ LATEST_BACKUP="$(
     | tail -1
 )"
 
+if [[ -z "${LATEST_BACKUP}" || ! -d "${LATEST_BACKUP}" ]]; then
+  echo "ERROR: Could not determine pre-deployment backup."
+  exit 1
+fi
+
 BACKUP_ID="$(basename "${LATEST_BACKUP}")"
 
 echo
@@ -63,12 +74,17 @@ echo "Validating approved Compose configuration..."
 
 if [[ "${STACK}" == "infra-stack" ]]; then
   docker compose \
-    -f "${REPO_STACK}/docker-compose.yaml" \
+    -f "${REPO_STACK}/${COMPOSE_FILE}" \
+    --env-file "${LIVE_STACK}/.env" \
+    config >/dev/null
+elif [[ "${STACK}" == "plex-stack" && -f "${LIVE_STACK}/.env" ]]; then
+  docker compose \
+    -f "${REPO_STACK}/${COMPOSE_FILE}" \
     --env-file "${LIVE_STACK}/.env" \
     config >/dev/null
 else
   docker compose \
-    -f "${REPO_STACK}/docker-compose.yaml" \
+    -f "${REPO_STACK}/${COMPOSE_FILE}" \
     config >/dev/null
 fi
 
@@ -78,8 +94,8 @@ echo
 echo "Syncing approved Compose definition to production..."
 
 cp \
-  "${REPO_STACK}/docker-compose.yaml" \
-  "${LIVE_STACK}/docker-compose.yaml"
+  "${REPO_STACK}/${COMPOSE_FILE}" \
+  "${LIVE_STACK}/${COMPOSE_FILE}"
 
 echo
 echo "Pulling approved images..."
