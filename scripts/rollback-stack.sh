@@ -10,10 +10,10 @@ BACKUP_ROOT="${HOME}/docker-backups"
 HEALTHCHECK_SCRIPT="${HOME}/rowdyroost/scripts/healthcheck-stack.sh"
 
 case "${STACK}" in
-  dns-stack|infra-stack|proxy-stack)
+  dns-stack|infra-stack|proxy-stack|plex-stack)
     ;;
   *)
-    echo "ERROR: Usage: $0 {dns-stack|infra-stack|proxy-stack} [backup-id|latest] [manual|--automatic]"
+    echo "ERROR: Usage: $0 {dns-stack|infra-stack|proxy-stack|plex-stack} [backup-id|latest] [manual|--automatic]"
     exit 1
     ;;
 esac
@@ -56,8 +56,14 @@ if [[ -z "${BACKUP_DIR}" || ! -d "${BACKUP_DIR}" ]]; then
   exit 1
 fi
 
-if [[ ! -f "${BACKUP_DIR}/docker-compose.yaml" ]]; then
-  echo "ERROR: Backup does not contain docker-compose.yaml"
+COMPOSE_FILE="docker-compose.yaml"
+
+if [[ "${STACK}" == "plex-stack" ]]; then
+  COMPOSE_FILE="docker-compose.yml"
+fi
+
+if [[ ! -f "${BACKUP_DIR}/${COMPOSE_FILE}" ]]; then
+  echo "ERROR: Backup does not contain ${COMPOSE_FILE}"
   exit 1
 fi
 
@@ -67,12 +73,6 @@ echo "========================================"
 echo "Stack:  ${STACK}"
 echo "Backup: ${BACKUP_DIR}"
 echo "Mode:   ${MODE}"
-echo
-echo "This will:"
-echo "  1. Stop the current ${STACK} containers"
-echo "  2. Restore Compose and persistent data from backup"
-echo "  3. Restart the stack"
-echo "  4. Run production health checks"
 echo
 
 if [[ "${MODE}" != "--automatic" ]]; then
@@ -84,9 +84,11 @@ if [[ "${MODE}" != "--automatic" ]]; then
   fi
 fi
 
-echo
-echo "Checking sudo access..."
-sudo -v
+if [[ "${STACK}" != "plex-stack" ]]; then
+  echo
+  echo "Checking sudo access..."
+  sudo -v
+fi
 
 echo
 echo "Stopping current stack..."
@@ -117,17 +119,9 @@ case "${STACK}" in
       "${STACK_DIR}/homarr" \
       "${STACK_DIR}/uptime-kuma"
 
-    sudo cp -a \
-      "${BACKUP_DIR}/homeassistant" \
-      "${STACK_DIR}/homeassistant"
-
-    sudo cp -a \
-      "${BACKUP_DIR}/homarr" \
-      "${STACK_DIR}/homarr"
-
-    sudo cp -a \
-      "${BACKUP_DIR}/uptime-kuma" \
-      "${STACK_DIR}/uptime-kuma"
+    sudo cp -a "${BACKUP_DIR}/homeassistant" "${STACK_DIR}/homeassistant"
+    sudo cp -a "${BACKUP_DIR}/homarr" "${STACK_DIR}/homarr"
+    sudo cp -a "${BACKUP_DIR}/uptime-kuma" "${STACK_DIR}/uptime-kuma"
 
     cp -a \
       "${BACKUP_DIR}/docker-compose.yaml" \
@@ -145,35 +139,52 @@ case "${STACK}" in
       "${STACK_DIR}/data" \
       "${STACK_DIR}/letsencrypt"
 
-    sudo cp -a \
-      "${BACKUP_DIR}/data" \
-      "${STACK_DIR}/data"
-
-    sudo cp -a \
-      "${BACKUP_DIR}/letsencrypt" \
-      "${STACK_DIR}/letsencrypt"
+    sudo cp -a "${BACKUP_DIR}/data" "${STACK_DIR}/data"
+    sudo cp -a "${BACKUP_DIR}/letsencrypt" "${STACK_DIR}/letsencrypt"
 
     cp -a \
       "${BACKUP_DIR}/docker-compose.yaml" \
       "${STACK_DIR}/docker-compose.yaml"
     ;;
-esac
 
-echo
-echo "Restored files from:"
-echo "  ${BACKUP_DIR}"
+  plex-stack)
+    APPDATA_ROOT="${HOME}/docker/appdata"
+
+    for dir in \
+      gluetun \
+      qbittorrent \
+      plex \
+      radarr \
+      sonarr \
+      prowlarr
+    do
+      rm -rf "${APPDATA_ROOT}/${dir}"
+
+      if [[ -d "${BACKUP_DIR}/${dir}" ]]; then
+        cp -a \
+          "${BACKUP_DIR}/${dir}" \
+          "${APPDATA_ROOT}/${dir}"
+      fi
+    done
+
+    cp -a \
+      "${BACKUP_DIR}/docker-compose.yml" \
+      "${STACK_DIR}/docker-compose.yml"
+
+    if [[ -f "${BACKUP_DIR}/.env" ]]; then
+      cp -a \
+        "${BACKUP_DIR}/.env" \
+        "${STACK_DIR}/.env"
+    fi
+    ;;
+esac
 
 echo
 echo "Starting restored stack..."
 
 cd "${STACK_DIR}"
-
 docker compose pull
 docker compose up -d
-
-echo
-echo "Waiting 20 seconds for services to initialize..."
-sleep 20
 
 echo
 echo "Running production health checks..."
@@ -191,9 +202,5 @@ else
   echo "========================================"
   echo "ROLLBACK COMPLETED BUT HEALTH CHECK FAILED"
   echo "========================================"
-  echo
-  echo "Manual intervention is required."
-  echo "Backup used:"
-  echo "  ${BACKUP_DIR}"
   exit 1
 fi
