@@ -1,0 +1,9 @@
+services:
+  retro-games:
+    image: nginx:alpine
+    container_name: retro-games
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    volumes:
+      - ./web:/usr/share/nginx/html:ro

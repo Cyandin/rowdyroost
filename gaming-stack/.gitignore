@@ -1,0 +1,5 @@
+# Original downloaded archives
+downloads/
+
+# Temporary/extracted build directories
+build/

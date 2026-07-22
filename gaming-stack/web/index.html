@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Rowdy Roost Arcade</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #111;
+      color: #fff;
+      font-family: "Courier New", monospace;
+      text-align: center;
+    }
+
+    header {
+      padding: 50px 20px 20px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #aaa;
+      font-size: 1.2rem;
+    }
+
+    .games {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      padding: 40px;
+    }
+
+    .game {
+      display: block;
+      width: 260px;
+      padding: 35px;
+      border: 2px solid #fff;
+      border-radius: 12px;
+      color: #fff;
+      text-decoration: none;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .game:hover {
+      transform: scale(1.05);
+      background: #222;
+    }
+
+    .game-icon {
+      font-size: 4rem;
+    }
+
+    .game h2 {
+      font-size: 2rem;
+      margin: 15px 0 10px;
+    }
+
+    footer {
+      margin: 40px 0 30px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🎮 Rowdy Roost Arcade</h1>
+  <div class="subtitle">
+    Pick a game and start playing.
+  </div>
+</header>
+
+<div class="games">
+
+  <a class="game" href="gorillas.html">
+    <div class="game-icon">🦍</div>
+    <h2>Gorillas</h2>
+    <p>
+      Choose your angle and velocity.<br>
+      Bomb the other gorilla.
+    </p>
+  </a>
+
+  <a class="game" href="nibbles.html">
+    <div class="game-icon">🐍</div>
+    <h2>Nibbles</h2>
+    <p>
+      Eat the numbers.<br>
+      Don't eat yourself.
+    </p>
+  </a>
+
+  <a class="game" href="artura.html">
+    <div class="game-icon">⚔️</div>
+    <h2>Artura</h2>
+    <p>
+      Enter a dark fantasy world.<br>
+      Fight your way through the adventure.
+    </p>
+  </a>
+
+  <a class="game" href="pt109.html">
+    <div class="game-icon">🚤</div>
+    <h2>PT-109</h2>
+    <p>
+      Command a patrol torpedo boat.<br>
+      Take the fight to the Pacific.
+    </p>
+  </a>
+
+  <a class="game" href="silpheed.html">
+    <div class="game-icon">🚀</div>
+    <h2>Silpheed</h2>
+    <p>
+      Launch into space.<br>
+      Destroy the enemy fleet.
+    </p>
+  </a>
+
+</div>
+
+<footer>
+  Rowdy Roost Arcade
+</footer>
+
+</body>
+</html>

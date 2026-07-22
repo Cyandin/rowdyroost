@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Nibbles | Rowdy Roost Arcade</title>
+
+  <link rel="stylesheet"
+        href="https://v8.js-dos.com/latest/js-dos.css">
+
+  <script src="https://v8.js-dos.com/latest/js-dos.js"></script>
+
+  <style>
+    html, body, #dos {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="dos"></div>
+
+<script>
+(async () => {
+
+  const [qbasicResponse, nibblesResponse] = await Promise.all([
+    fetch("games/qbasic.exe"),
+    fetch("games/nibbles.dat")
+  ]);
+
+  if (!qbasicResponse.ok) {
+    throw new Error(
+      `Failed to load qbasic.exe: ${qbasicResponse.status}`
+    );
+  }
+
+  if (!nibblesResponse.ok) {
+    throw new Error(
+      `Failed to load nibbles.dat: ${nibblesResponse.status}`
+    );
+  }
+
+  const qbasicExe = new Uint8Array(
+    await qbasicResponse.arrayBuffer()
+  );
+
+  const nibblesBas = new Uint8Array(
+    await nibblesResponse.arrayBuffer()
+  );
+
+  Dos(document.getElementById("dos"), {
+    dosboxConf: `
+[autoexec]
+mount c .
+c:
+qbasic.exe /run nibbles.dat
+`,
+    initFs: [
+      {
+        path: "qbasic.exe",
+        contents: qbasicExe
+      },
+      {
+        path: "nibbles.dat",
+        contents: nibblesBas
+      }
+    ],
+    autoStart: true
+  });
+
+})();
+</script>
+
+</body>
+</html>
