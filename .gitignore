@@ -34,3 +34,10 @@ music/
 *.tar.gz
 *.zip
 *.bak
+
+# Persistent runtime data
+dns-stack/adguard/
+infra-stack/homarr/
+infra-stack/homeassistant/
+infra-stack/uptime-kuma/
+proxy-stack/letsencrypt/
