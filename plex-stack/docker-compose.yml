@@ -1,6 +1,6 @@
 services:
   gluetun:
-    image: qmcgaw/gluetun@sha256:b0ee2135e6ba52ad3f102aae9663707cd1c9531485117067a380d3b2b6dd991d
+    image: qmcgaw/gluetun@sha256:596fb46a686fd060b33022669dba951496bc8fa8c68a6306fd8a4acf689497c3
     container_name: vpn
     cap_add:
       - NET_ADMIN
