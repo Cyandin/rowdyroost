@@ -14,9 +14,14 @@
   "prHourlyLimit": 2,
   "packageRules": [
     {
-      "description": "Production Docker images - seven day stabilization period",
+      "description": "Versioned Docker releases - seven day stabilization period",
       "matchDatasources": [
         "docker"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
       ],
       "minimumReleaseAge": "7 days"
     },
@@ -98,8 +103,7 @@
       "matchFileNames": [
         "plex-stack/**"
       ],
-      "automerge": false,
-      "minimumReleaseAge": "7 days"
+      "automerge": false
     }
   ]
 }
