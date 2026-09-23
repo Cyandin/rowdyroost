@@ -18,7 +18,7 @@ services:
     command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARED_TOKEN}
 
   homarr:
-    image: ghcr.io/homarr-labs/homarr:latest@sha256:ae875bfbcfd6d5cb5d9f40ba656920373c058d73ca3f360d2ffea835c7b76fa9
+    image: ghcr.io/homarr-labs/homarr:latest@sha256:f0fb462299af9749a72f11040fd3f604d1c4976b3d9a137ae5021b7f44d980f5
     container_name: homarr
     restart: unless-stopped
     environment:
