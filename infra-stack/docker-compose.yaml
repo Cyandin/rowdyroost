@@ -12,7 +12,7 @@ services:
       - "8123:8123"
 
   cloudflared:
-    image: cloudflare/cloudflared:2026.9.3@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c
+    image: cloudflare/cloudflared:2026.10.3@sha256:faa8e0a1475f137c910be6025f43c8e4092fdd35461b31e19fd1390657a1ff39
     container_name: cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARED_TOKEN}
