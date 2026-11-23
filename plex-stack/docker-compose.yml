@@ -39,7 +39,7 @@ services:
       - gluetun
 
   plex:
-    image: lscr.io/linuxserver/plex:latest@sha256:01a53d9c7adcbb3701fbb0a4230c0a37c85453759b6b05a67356c3c7a09de08d
+    image: lscr.io/linuxserver/plex:latest@sha256:31e4c2de666cd130bc389133b6c63af08912559d992370e52822f8f229185aef
     container_name: plex
     ports:
       - "32400:32400"
