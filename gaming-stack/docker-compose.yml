@@ -1,6 +1,6 @@
 services:
   retro-games:
-    image: nginx:alpine@sha256:df221db836e1754089190208cee7eeda94f233197056426eda74a43ab1abeac2
+    image: nginx:alpine@sha256:b50897d5c7b1aa08067c3d90c5e8b3e47ec4e3c91c91446f67820228f7b41e34
     container_name: retro-games
     restart: unless-stopped
     ports:
